@@ -1,0 +1,15 @@
+pega_tab_1 <- function(tabla_0, tabla_1, tabla_2, nacional = NULL){
+  tabulado <- list()
+  tabulado[[1]] <- cbind(tabla_0[[1]], NA, tabla_1[[1]][, -1], NA, tabla_2[[1]][, -1])
+  tabulado[[2]] <- cbind(tabla_0[[2]], NA, tabla_1[[2]][, -1], NA, tabla_2[[2]][, -1])
+  tabulado[[3]] <- cbind(tabla_0[[3]], NA, tabla_1[[3]][, -1], NA, tabla_2[[3]][, -1])
+  tabulado[[4]] <- cbind(tabla_0[[4]], NA, tabla_1[[4]][, -1], NA, tabla_2[[4]][, -1])
+  
+  if(!is.null(nacional)){
+    for(i in 1:4){tabulado[[i]][1,1] <- 'Estados Unidos Mexicanos'}
+  }else{
+    
+  }
+  
+  return(tabulado)
+}
