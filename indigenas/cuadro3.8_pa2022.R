@@ -1,0 +1,119 @@
+# library(foreign)
+# library(survey)
+# source('D:/ENADIS/Calculadores/Tab_vertical.R')
+# source('D:/ENADIS/Calculadores/Pega_tab_1.R')
+# source('D:/ENADIS/Calculadores/Tab_2.R')
+# options("survey.lonely.psu"="adjust", digits = 9, scipen = 999)
+# load('D:/ENADIS/Base/Bases_datos/vistas_2022/ENADIS_2022_V9_2023-02-16_V00.Rdata')
+# nombres_bases <- names(TAB)
+# bases <- list()
+# bases[[1]] <- TAB[[3]]
+# bases[[2]] <- TAB[[2]]
+# #indigena
+# bases[[1]]$ID_PER <- paste(bases[[1]]$UPM, bases[[1]]$VIV_SEL,bases[[1]]$HOGAR, bases[[1]]$N_REN, sep = ".") 
+# bases[[1]]$FACTOR_PER <- as.numeric(as.character(bases[[1]]$FACTOR))
+# #bases[[1]] <- bases[[1]][bases[[1]]$RESUL_POB%in%c('A','B'), ]
+# #tsdem
+# bases[[2]]$ID_PER <- paste(bases[[2]]$UPM, bases[[2]]$VIV_SEL, bases[[2]]$HOGAR, bases[[2]]$N_REN, sep = ".") 
+# #===============================================================================
+# estois <- names(bases[[1]])[5:153]
+# t7 <- merge(bases[[2]], bases[[1]][,c("ID_PER", estois, "FACTOR_PER")], by = "ID_PER", all.x = T)
+# t7$marca_indi <- ifelse(t7$P4_2_01_1%in%c('A','B'), 1, 0)
+t7 <- B_S3
+
+t7$EDAD <- as.numeric(as.character(t7$EDAD))
+#-------------------------------------------------------------------------------
+etiquetas1 <- c("Atención médica o medicamentos",
+                "Atención o servicios en oficinas de gobierno",
+                "Entrada o permanencia en algún negocio, centro comercial o banco",
+                "Recibir apoyos de programas sociales (becas, BIENESTAR, etcétera)")
+etiquetas2 <- c("Posibilidad de estudiar o seguir estudiando")
+etiquetas3 <- c("La oportunidad de trabajar u obtener un ascenso",
+                "Algún crédito de vivienda, préstamo o tarjeta",
+                "Renta de un lugar para vivir, como departamento, vivienda o cuarto")
+#---- Primera col ----
+f0 <- eval(parse(text = paste0("t7$PM9_1_",1:8,"%in%'1'", collapse = "|")))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & f0%in%T, t7$FACTOR_PER, 0)
+for(i in 1:4) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:97) & t7$PM9_1_",i,"%in%'1', t7$FACTOR_PER, 0)")))
+asp <- svydesign(id=~as.numeric(UPM_DIS), weights=~1, data=t7, strata=~as.numeric(EST_DIS))
+xx <-c('TOT', paste0('TOT_',1:4))
+tab1_1 <- Tab_vert_a(xx, c("Estados Unidos Mexicanos",etiquetas1))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:35) & f0%in%T, t7$FACTOR_PER, 0)
+t7$TOT_5 <- ifelse(!t7$marca_indi%in%0 &  t7$EDAD%in%c(12:35) & t7$PM9_1_5%in%'1', t7$FACTOR_PER, 0)
+xx <-c('TOT', paste0('TOT_',5:5))
+asp <- svydesign(id=~as.numeric(UPM_DIS), weights=~1, data=t7, strata=~as.numeric(EST_DIS))
+tab1_2 <- Tab_vert_a(xx, c("Estados Unidos Mexicanos",etiquetas2))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & f0%in%T, t7$FACTOR_PER, 0)
+for(i in 6:8) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & t7$PM9_1_",i,"%in%'1', t7$FACTOR_PER, 0)")))
+asp <- svydesign(id=~as.numeric(UPM_DIS), weights=~1, data=t7, strata=~as.numeric(EST_DIS))
+xx <-c('TOT', paste0('TOT_',6:8))
+tab1_3 <- Tab_vert_a(xx, c("Estados Unidos Mexicanos",etiquetas3))
+
+#---- Mujeres ----
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & f0%in%T & t7$SEXO%in%'2', t7$FACTOR_PER, 0)
+for(i in 1:4) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:97) & t7$PM9_1_",i,"%in%'1' & t7$SEXO%in%'2', t7$FACTOR_PER, 0)")))
+xx <-c('TOT', paste0('TOT_',1:4))
+tab2_1 <- Tab_vert_a(xx, c("Mujeres",etiquetas1))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:35) & f0%in%T & t7$SEXO%in%'2', t7$FACTOR_PER, 0)
+t7$TOT_5 <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:35) & t7$PM9_1_5%in%'1' & t7$SEXO%in%'2', t7$FACTOR_PER, 0)
+xx <-c('TOT', paste0('TOT_',5:5))
+tab2_2 <- Tab_vert_a(xx, c("Mujeres",etiquetas2))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & f0%in%T & t7$SEXO%in%'2', t7$FACTOR_PER, 0)
+for(i in 6:8) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & t7$PM9_1_",i,"%in%'1' & t7$SEXO%in%'2', t7$FACTOR_PER, 0)")))
+asp <- svydesign(id=~as.numeric(UPM_DIS), weights=~1, data=t7, strata=~as.numeric(EST_DIS))
+xx <-c('TOT', paste0('TOT_',6:8))
+tab2_3 <- Tab_vert_a(xx, c("Mujeres",etiquetas3))
+
+#---- Hombres ----
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & f0%in%T & t7$SEXO%in%'1', t7$FACTOR_PER, 0)
+for(i in 1:4) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:97) & t7$PM9_1_",i,"%in%'1' & t7$SEXO%in%'1', t7$FACTOR_PER, 0)")))
+xx <-c('TOT', paste0('TOT_',1:4))
+tab3_1 <- Tab_vert_a(xx, c("Hombres",etiquetas1))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(12:35) & f0%in%T & t7$SEXO%in%'1', t7$FACTOR_PER, 0)
+t7$TOT_5 <- ifelse(!t7$marca_indi%in%0 &  t7$EDAD%in%c(12:35) & t7$PM9_1_5%in%'1' & t7$SEXO%in%'1', t7$FACTOR_PER, 0)
+xx <-c('TOT', paste0('TOT_',5:5))
+tab3_2 <- Tab_vert_a(xx, c("Hombres",etiquetas2))
+
+t7$TOT <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & f0%in%T & t7$SEXO%in%'1', t7$FACTOR_PER, 0)
+for(i in 6:8) eval(parse(text = paste0("t7$TOT_",i," <- ifelse(!t7$marca_indi%in%0 & t7$EDAD%in%c(18:97) & t7$PM9_1_",i,"%in%'1' & t7$SEXO%in%'1', t7$FACTOR_PER, 0)")))
+asp <- svydesign(id=~as.numeric(UPM_DIS), weights=~1, data=t7, strata=~as.numeric(EST_DIS))
+xx <-c('TOT', paste0('TOT_',6:8))
+tab3_3 <- Tab_vert_a(xx, c("Hombres",etiquetas3))
+
+#-------------------------------------------------------------------------------
+for(i in 1:3) eval(parse(text = paste0("
+col",i," <- purrr::map(.x = 1:4, .f =~rbind(tab",i,"_1[[.x]], NA, tab",i,"_2[[.x]], NA, tab",i,"_3[[.x]]))
+")))
+
+tabulado <- pega_tab_1(tabla_0 = col1, tabla_1 = col2, tabla_2 = col3)
+tabulado <- purrr::map(.x = 1:4, .f =~rbind(NA, tabulado[[.x]]))
+edades <- c('12 años y más', '12 a 35 años', '18 años y más')
+
+for(j in 1:4) eval(parse(text = paste0("
+    tabulado[[j]][1,1] <- 'Estados Unidos Mexicanos' 
+    tabulado[[j]][2,1] <- edades[1]
+    tabulado[[j]][8,1] <- edades[2]
+    tabulado[[j]][11,1]<- edades[3]
+")))
+tabulado[[3]] <- asteriscos_int_a(tabulado[[3]])
+
+#-------------------------------------------------------------------------------
+source("D:/ENADIS/Calculadores/escribe_excel_a.R")
+dir <- "D:/ENADIS/Tabs/pubs_2022/S3/"
+num_hoja <- 9
+archivos <- c('III_poblacion_indigena_2022_est.xlsx', 'III_poblacion_indigena_2022_cv.xlsx',
+              'III_poblacion_indigena_2022_int.xlsx', 'III_poblacion_indigena_2022_err.xlsx')
+purrr::map(.x = 1:length(archivos), .f =~ Escribe_Excel_a(paste0(dir, archivos[.x]), num_hoja, tabulado[[.x]]))
+
+
+
+
+
+
+
